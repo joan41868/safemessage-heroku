@@ -180,9 +180,9 @@
 
 	}
 	button{
-		font-size: 19px;
+		font-size: 15px;
 	}
 	input{
-		font-size: 20px;
+		font-size: 16px;
 	}
 </style>
