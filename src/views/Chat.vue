@@ -1,7 +1,7 @@
 <template>
 	<div class="home bg-dark" >
-		<b-icon icon="question" style="color: green; position: absolute; top: 5px; right: 5px;" click="triggerShowInfo()" v-b-modal.modal-1></b-icon>
-	
+		<b-icon icon="question" style="position: absolute; top: 5px; right: 5px;" class="text-success" click="triggerShowInfo()" v-b-modal.modal-1></b-icon>
+		<b-icon icon="person" style="position: absolute; top: 5px; left: 5px;" class="text-danger" v-b-modal.modal-2></b-icon>
   <b-modal id="modal-1" title="Safemessage"  
   		body-bg-variant="dark" 
   		header-bg-variant="dark" 
