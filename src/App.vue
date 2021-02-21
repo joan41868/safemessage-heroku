@@ -1,7 +1,7 @@
 <template>
   <div id="app" class="bg-dark">
     <div id="nav">
-      <h2 style="color: dimgray;">Anonymous Chat</h2>
+      <img src="../public/img/anonymous.png" style="heigth: 50px; width: 50px;" class="bg-dark"/>
       <!-- <router-link to="/">Chat</router-link> -->
     </div>
     <router-view/>

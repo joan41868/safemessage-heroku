@@ -2,6 +2,7 @@
   <div class="chatmessage"  style="">
 					<p><b>{{senderUsername}}</b></p>
 					<p>{{content}}</p>
+          <p style="font-size: 9px; color: darkgray;">{{createdAt}}</p>
   </div>
 </template>
 
@@ -9,7 +10,8 @@
 export default {
     props:{
         content: String,
-        senderUsername: String
+        senderUsername: String,
+        createdAt: Date
     }
 }
 </script>
