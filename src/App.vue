@@ -1,8 +1,8 @@
 <template>
-  <div id="app">
+  <div id="app" class="bg-dark">
     <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+      <h2 style="color: dimgray;">Anonymous Chat</h2>
+      <!-- <router-link to="/">Chat</router-link> -->
     </div>
     <router-view/>
   </div>
