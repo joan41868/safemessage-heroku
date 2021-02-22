@@ -134,7 +134,11 @@
 							this.messages.pop();
 						}
 						this.messages.push(message);
+					});
 
+
+					this.stompClient.subscribe("/topic/listedCoins", (data)=>{
+						console.log(data);
 					});
 				});
 			},
