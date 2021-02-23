@@ -7,6 +7,13 @@
 		<b-icon icon="person" style="position: absolute; top: 5px; left: 5px; font-size: 30px;" class="text-danger"
 			v-b-modal.modal-2></b-icon>
 
+		<b-alert :show="dismissCountDown" dismissible variant="warning" @dismissed="dismissCountDown=0"
+			@dismiss-count-down="countDownChanged">
+			<p>{{alertText}}</p>
+			<p>Will be dismissed automaticaly after {{dismissCountDown}}</p>
+			<b-progress variant="warning" :max="dismissSecs" :value="dismissCountDown" height="4px"></b-progress>
+		</b-alert>
+
 		<b-modal id="modal-1" title="Safemessage" body-bg-variant="dark" header-bg-variant="dark"
 			footer-bg-variant="dark" body-text-variant="light" header-text-variant="light" :cancel-disabled="true">
 			<p>A secure chat aimed at maximum privacy.</p>
@@ -72,19 +79,23 @@
 	import Message from './Message.vue';
 	import Info from './Info.vue';
 	import * as uuid from 'uuid';
+
 	export default {
 		name: 'Home',
 		components: {
 			HelloWorld,
 			Message,
-			Info
+			Info,
 		},
 		data() {
 			return {
 				connectedToServer: false,
 				messages: [],
 				showInfo: Boolean,
-				username: String
+				username: String,
+				alertText: String,
+				dismissSecs: 0,
+				dismissCountDown: 0,
 			}
 			// this.username = "";
 		},
@@ -93,80 +104,103 @@
 			this.showInfo = false;
 			this.username = prompt("Enter a username");
 			this.connectToChatServer();
-			this.subscribeToCoinListing();
-			
-		},
-		created() {
-			this.username = uuid.v4();
-			this.messages = [];
 
 		},
+		created() {
+			this.username = "not yet defined"; //uuid.v4();
+			this.messages = [];
+		},
 		methods: {
+			enterUsernamePrompt(){
+				this.username = prompt("Enter a username", uuid.v4());
+			},
+			countDownChanged(dismissCountDown) {
+				this.dismissCountDown = dismissCountDown
+			},
+			showAlert() {
+				this.dismissCountDown = this.dismissSecs
+			},
+
 			showUsernamePopUp() {
 				this.$refs.usernamePopUp.show();
 			},
 
-			triggerShowInfo: function () {
+			triggerShowInfo() {
 				this.showInfo = !this.showInfo;
 			},
 
-			resubscribe(){
-				if(this.stompClient.connected && this.lastSubscription){
+			resubscribe() {
+				if (this.stompClient.connected && this.lastSubscription) {
 					this.lastSubscription.unsubscribe();
 					this.subscribeToChat();
 				}
 			},
 
-			subscribeToChat: function () {
+			addMessage(message) {
+
+				if (this.messages.length > 7) {
+					this.messages.pop();
+				}
+				this.messages.push(message);
+			},
+
+			subscribeToChat() {
 				if (this.username && this.username !== '') {
 					this.lastSubscription = this.stompClient.subscribe("/topic/messages/" + this.username, (data) => {
 						const {
 							senderUsername,
 							recipientUsername,
 							content
-						} = data.headers;
+						} = JSON.parse(data.body);
+
 						const message = {
 							senderUsername,
 							recipientUsername,
 							content,
 						};
-						// const message = JSON.parse(body);
-						if (this.messages.length > 7) {
-							this.messages.pop();
-						}
-						this.messages.push(message);
+
+						this.addMessage(message);
 					});
 				}
 			},
 
-			subscribeToCoinListing: function(){
-				if(this.connectedToServer){
-					this.stompClient.subscribe("/topic/listedCoins", (data)=>{
-						console.log(data);
-					});
-				}
+			subscribeToCoinListing() {
+				this.stompClient.subscribe("/topic/listedCoins", (data) => {
+					const {
+						body
+					} = data;
+					this.alertText = JSON.parse(body).ListedCoin.message;
+					this.dismissSecs = 5;
+					this.dismissCountDown = 5;
+					this.showAlert = true;
+				});
 			},
 
-			connectToChatServer: function () {
+			connectToChatServer() {
 				this.connectedToServer = false;
 				this.socket = new SockJs("https://java-chat-backend.herokuapp.com/chat-app");
-				this.stompClient = StompClient.over(this.socket, {debug: false});
+				this.stompClient = StompClient.over(this.socket, {
+					debug: false
+				});
 
 				this.stompClient.connect({}, (frame) => {
 					this.connectedToServer = true;
 					this.subscribeToChat();
+					this.subscribeToCoinListing();
 				});
 			},
 
-			sendMessage: function (e) {
+			sendMessage(e) {
 				e.preventDefault();
 				const message = {
 					senderUsername: this.username,
 					recipientUsername: document.getElementById('recipient').value,
 					content: document.getElementById('messageContent').value,
 				};
-				this.stompClient.send("/topic/messages/" + message.recipientUsername, {}, message);
-				this.messages.push(message);
+				this.stompClient.send("/topic/messages/" + message.recipientUsername, JSON.stringify(message), {});
+
+				this.addMessage(message);
+				
 				document.getElementById('messageContent').value = "";
 			}
 		}
