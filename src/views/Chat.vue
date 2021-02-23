@@ -135,14 +135,13 @@
 						}
 						this.messages.push(message);
 					});
-
-					console.log(this.lastSubscription);
 				}
 			},
 
+
 			connectToChatServer: function () {
 				this.connectedToServer = false;
-				this.socket = new SockJs("http://localhost:8080/chat-app");
+				this.socket = new SockJs("https://java-chat-backend.herokuapp.com/chat-app");
 				this.stompClient = StompClient.over(this.socket, {debug: false});
 
 				this.stompClient.connect({}, (frame) => {
