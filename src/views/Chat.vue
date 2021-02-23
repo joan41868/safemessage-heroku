@@ -1,12 +1,12 @@
 <template>
-	<div class="home bg-dark" >
-		
+	<div class="home bg-dark">
+
 		<b-icon icon="question" style="position: absolute; top: 5px; right: 5px; font-size: 30px;" class="text-success"
-			 v-b-modal.modal-1></b-icon>
-		
+			v-b-modal.modal-1></b-icon>
+
 		<b-icon icon="person" style="position: absolute; top: 5px; left: 5px; font-size: 30px;" class="text-danger"
 			v-b-modal.modal-2></b-icon>
-		
+
 		<b-modal id="modal-1" title="Safemessage" body-bg-variant="dark" header-bg-variant="dark"
 			footer-bg-variant="dark" body-text-variant="light" header-text-variant="light" :cancel-disabled="true">
 			<p>A secure chat aimed at maximum privacy.</p>
@@ -26,7 +26,7 @@
 
 
 		<p style="color: white; font-size: 22px;">Your name is: {{username}}</p>
-		
+
 		<b-form @submit="sendMessage"
 			style="display: flex; flex-direction: column; justify-content: space-between; margin: auto; width: 75%;">
 			<b-form-input id="recipient" type="text" placeholder="recipient..."
@@ -70,8 +70,8 @@
 	import SockJs from 'sockjs-client';
 	import StompClient from 'webstomp-client';
 	import Message from './Message.vue';
-	import * as uuid from 'uuid';
 	import Info from './Info.vue';
+	import * as uuid from 'uuid';
 	export default {
 		name: 'Home',
 		components: {
@@ -86,39 +86,39 @@
 				showInfo: Boolean,
 				username: String
 			}
+			// this.username = "";
 		},
 		mounted() {
 
-			this.showUsernamePopUp();
 			this.showInfo = false;
-			// this.username = document.getElementById("usernameInput").value;// prompt("Enter a username, please :)");
-			this.username = "";
-			// if(!this.username) this.username = uuid.v4().toString(); 
+			this.username = prompt("Enter a username");
 			this.connectToChatServer();
+			
 		},
 		created() {
-			this.username = "";
+			this.username = uuid.v4();
 			this.messages = [];
 
 		},
 		methods: {
 			showUsernamePopUp() {
 				this.$refs.usernamePopUp.show();
-
 			},
+
 			triggerShowInfo: function () {
 				this.showInfo = !this.showInfo;
 			},
 
-			connectToChatServer: function () {
-				this.connectedToServer = false;
-				this.socket = new SockJs("https://java-chat-backend.herokuapp.com/chat-app");
-				this.stompClient = StompClient.over(this.socket, {
-					debug: false
-				});
-				this.stompClient.connect({}, (frame) => {
-					this.connectedToServer = true;
-					this.stompClient.subscribe("/topic/messages/" + this.username, (data) => {
+			resubscribe(){
+				if(this.stompClient.connected && this.lastSubscription){
+					this.lastSubscription.unsubscribe();
+					this.subscribeToChat();
+				}
+			},
+
+			subscribeToChat: function () {
+				if (this.username && this.username !== '') {
+					this.lastSubscription = this.stompClient.subscribe("/topic/messages/" + this.username, (data) => {
 						const {
 							senderUsername,
 							recipientUsername,
@@ -136,10 +136,18 @@
 						this.messages.push(message);
 					});
 
+					console.log(this.lastSubscription);
+				}
+			},
 
-					this.stompClient.subscribe("/topic/listedCoins", (data)=>{
-						console.log(data);
-					});
+			connectToChatServer: function () {
+				this.connectedToServer = false;
+				this.socket = new SockJs("http://localhost:8080/chat-app");
+				this.stompClient = StompClient.over(this.socket, {debug: false});
+
+				this.stompClient.connect({}, (frame) => {
+					this.connectedToServer = true;
+					this.subscribeToChat();
 				});
 			},
 
@@ -183,10 +191,12 @@
 		bottom: 5px;
 
 	}
-	button{
+
+	button {
 		font-size: 15px;
 	}
-	input{
+
+	input {
 		font-size: 16px;
 	}
 </style>
