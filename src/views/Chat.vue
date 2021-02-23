@@ -93,6 +93,7 @@
 			this.showInfo = false;
 			this.username = prompt("Enter a username");
 			this.connectToChatServer();
+			this.subscribeToCoinListing();
 			
 		},
 		created() {
@@ -138,6 +139,13 @@
 				}
 			},
 
+			subscribeToCoinListing: function(){
+				if(this.connectedToServer){
+					this.stompClient.subscribe("/topic/listedCoins", (data)=>{
+						console.log(data);
+					});
+				}
+			},
 
 			connectToChatServer: function () {
 				this.connectedToServer = false;
