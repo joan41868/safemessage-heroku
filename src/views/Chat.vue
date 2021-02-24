@@ -147,11 +147,12 @@
 			},
 
 			async sendInitialConnectionRequest(){
+				const beUrl = 'http://localhost:8080';
 				const ax = axios.default;
 				const obtainIpAddressUrl = 'https://api.ipify.org?format=json';
 				const ipData = (await ax.get(obtainIpAddressUrl)).data;
 				const {ip} = ipData;
-				const checkUrl = 'https://java-chat-backend.herokuapp.com/check/'+ip;
+				const checkUrl = beUrl+'/check/'+ip;
 				// data should contain IP
 				const {data} = await ax.get(checkUrl);
 				if(data.ipAddressHash && data.username){
@@ -159,10 +160,10 @@
 				}else{
 					this.username = prompt("Enter a username");
 					if(this.username){
-						const registerUrl = "https://java-chat-backend.herokuapp.com/create";
+						const registerUrl = beUrl+"/create";
 						const requestData = {
-							ip,
-							username
+							ipAddress: ip,
+							username: this.username
 						};
 						await ax.post(registerUrl, requestData);
 					}else{
