@@ -97,6 +97,7 @@
 				alertText: String,
 				dismissSecs: 0,
 				dismissCountDown: 0,
+				beUrl: 'https://java-chat-backend.herokuapp.com'
 			}
 			// this.username = "";
 		},
@@ -147,7 +148,7 @@
 			},
 
 			async sendInitialConnectionRequest(){
-				const beUrl = 'https://java-chat-backend.herokuapp.com';
+				const beUrl = this.beUrl;
 				const ax = axios.default;
 				const obtainIpAddressUrl = 'https://api.ipify.org?format=json';
 				const ipData = (await ax.get(obtainIpAddressUrl)).data;
@@ -156,7 +157,7 @@
 				// data should contain IP
 				const {data} = await ax.get(checkUrl);
 				if(data.ipAddressHash && data.username){
-					this.username = username;
+					this.username = data.username;
 				}else{
 					this.username = prompt("Enter a username");
 					if(this.username){
@@ -208,7 +209,7 @@
 			connectToChatServer() {
 				this.connectedToServer = false;
 				// https://java-chat-backend.herokuapp.com
-				this.socket = new SockJs("http://localhost:8080/chat-app");
+				this.socket = new SockJs(this.beUrl+"/chat-app");
 				this.stompClient = StompClient.over(this.socket, {
 					debug: false
 				});
