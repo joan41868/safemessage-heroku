@@ -8,7 +8,7 @@
 			v-b-modal.modal-2></b-icon>
 
 		<b-alert :show="dismissCountDown" dismissible variant="warning" @dismissed="dismissCountDown=0"
-			@dismiss-count-down="countDownChanged">
+			@dismiss-count-down="countDownChanged" style="width: 40%; margin: auto;">
 			<p>{{alertText}}</p>
 			<p>Will be dismissed automaticaly after {{dismissCountDown}}</p>
 			<b-progress variant="warning" :max="dismissSecs" :value="dismissCountDown" height="4px"></b-progress>
@@ -76,9 +76,10 @@
 	import HelloWorld from '@/components/HelloWorld.vue'
 	import SockJs from 'sockjs-client';
 	import StompClient from 'webstomp-client';
-	import Message from './Message.vue';
+	import Message from '../components/Message.vue';
 	import Info from './Info.vue';
 	import * as uuid from 'uuid';
+	import * as axios from 'axios';
 
 	export default {
 		name: 'Home',
@@ -99,15 +100,16 @@
 			}
 			// this.username = "";
 		},
-		mounted() {
+		async mounted() {
 
 			this.showInfo = false;
-			this.username = prompt("Enter a username");
+			await this.sendInitialConnectionRequest();
+			// this.username = prompt("Enter a username");
 			this.connectToChatServer();
 
 		},
 		created() {
-			this.username = "not yet defined"; //uuid.v4();
+			this.username = undefined;
 			this.messages = [];
 		},
 		methods: {
@@ -144,6 +146,32 @@
 				this.messages.push(message);
 			},
 
+			async sendInitialConnectionRequest(){
+				const ax = axios.default;
+				const obtainIpAddressUrl = 'https://api.ipify.org?format=json';
+				const ipData = (await ax.get(obtainIpAddressUrl)).data;
+				const {ip} = ipData;
+				const checkUrl = 'https://https://java-chat-backend.herokuapp.com/check/'+ip;
+				// data should contain IP
+				const {data} = await ax.get(checkUrl);
+				if(data.ipAddressHash && data.username){
+					this.username = username;
+				}else{
+					this.username = prompt("Enter a username");
+					if(this.username){
+						const registerUrl = "https://java-chat-backend.herokuapp.com/create";
+						const requestData = {
+							ip,
+							username
+						};
+						await ax.post(registerUrl, requestData);
+					}else{
+						await this.sendInitialConnectionRequest();
+					}
+				}
+
+			},
+
 			subscribeToChat() {
 				if (this.username && this.username !== '') {
 					this.lastSubscription = this.stompClient.subscribe("/topic/messages/" + this.username, (data) => {
@@ -178,7 +206,8 @@
 
 			connectToChatServer() {
 				this.connectedToServer = false;
-				this.socket = new SockJs("https://java-chat-backend.herokuapp.com/chat-app");
+				// https://java-chat-backend.herokuapp.com
+				this.socket = new SockJs("http://localhost:8080/chat-app");
 				this.stompClient = StompClient.over(this.socket, {
 					debug: false
 				});
@@ -197,11 +226,14 @@
 					recipientUsername: document.getElementById('recipient').value,
 					content: document.getElementById('messageContent').value,
 				};
-				this.stompClient.send("/topic/messages/" + message.recipientUsername, JSON.stringify(message), {});
+				if(message.content.length > 0){
 
-				this.addMessage(message);
-				
-				document.getElementById('messageContent').value = "";
+					this.stompClient.send("/topic/messages/" + message.recipientUsername, JSON.stringify(message), {});
+	
+					this.addMessage(message);
+					
+					document.getElementById('messageContent').value = "";
+				}
 			}
 		}
 	}
