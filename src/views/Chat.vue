@@ -151,7 +151,7 @@
 				const obtainIpAddressUrl = 'https://api.ipify.org?format=json';
 				const ipData = (await ax.get(obtainIpAddressUrl)).data;
 				const {ip} = ipData;
-				const checkUrl = 'https://https://java-chat-backend.herokuapp.com/check/'+ip;
+				const checkUrl = 'https://java-chat-backend.herokuapp.com/check/'+ip;
 				// data should contain IP
 				const {data} = await ax.get(checkUrl);
 				if(data.ipAddressHash && data.username){
