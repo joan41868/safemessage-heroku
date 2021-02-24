@@ -147,7 +147,7 @@
 			},
 
 			async sendInitialConnectionRequest(){
-				const beUrl = 'http://localhost:8080';
+				const beUrl = 'https://java-chat-backend.herokuapp.com';
 				const ax = axios.default;
 				const obtainIpAddressUrl = 'https://api.ipify.org?format=json';
 				const ipData = (await ax.get(obtainIpAddressUrl)).data;
