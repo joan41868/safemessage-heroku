@@ -1,8 +1,25 @@
 <template>
   <div style="color: darkgray;" class="about">
-    <h4 >Support privacy with BTC:</h4>
-    <h6 >1KSymNBV87Q1id1a8P9xfqW8MoWZXa6bX8</h6>
-    <b-button size="lg" variant="success">Donate</b-button>
-    <b-button size="lg" variant="warning" @click="this.$router.push('/')">Back</b-button>
+    <go-home-button></go-home-button>
+    <h4>Support privacy with BTC:</h4>
+    <h6>1KSymNBV87Q1id1a8P9xfqW8MoWZXa6bX8</h6>
+    <span style="display: flex; flex-direction: row; justify-content: space-evenly;">
+      <b-button size="lg" variant="outline-success">Donate</b-button>
+    </span>
+    
   </div>
 </template>
+
+<script>
+import GoHomeButton from '../components/GoHomeButton.vue';
+export default {
+  components:{
+    GoHomeButton,
+  },
+  methods:{
+    goHome(){
+      this.$router.push("/");
+    }
+  }
+}
+</script>

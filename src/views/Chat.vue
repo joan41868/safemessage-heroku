@@ -1,36 +1,8 @@
 <template>
 	<div class="home bg-dark">
 
-		<b-icon icon="question" style="position: absolute; top: 5px; right: 5px; font-size: 30px;" class="text-success"
-			v-b-modal.modal-1></b-icon>
-
-		<b-icon icon="person" style="position: absolute; top: 5px; left: 5px; font-size: 30px;" class="text-danger"
-			v-b-modal.modal-2></b-icon>
-
-		<b-alert :show="dismissCountDown" dismissible variant="warning" @dismissed="dismissCountDown=0"
-			@dismiss-count-down="countDownChanged" style="width: 40%; margin: auto;">
-			<p>{{alertText}}</p>
-			<p>Will be dismissed automaticaly after {{dismissCountDown}}</p>
-			<b-progress variant="warning" :max="dismissSecs" :value="dismissCountDown" height="4px"></b-progress>
-		</b-alert>
-
-		<b-modal id="modal-1" title="Safemessage" body-bg-variant="dark" header-bg-variant="dark"
-			footer-bg-variant="dark" body-text-variant="light" header-text-variant="light" :cancel-disabled="true">
-			<p>A secure chat aimed at maximum privacy.</p>
-			<p>No cookies.</p>
-			<p>No trackers.</p>
-			<p>No database.</p>
-			<p>New username on refresh.</p>
-			<router-link to="/donate">Support the author :)</router-link>
-		</b-modal>
-
-		<b-modal ref="usernamePopUp" id="modal-2" title="Enter username" body-bg-variant="dark" header-bg-variant="dark"
-			footer-bg-variant="dark" body-text-variant="light" header-text-variant="light" :cancel-disabled="true"
-			ok-variant="success">
-			<b-form-input id="usernameInput" v-model="username"></b-form-input>
-
-		</b-modal>
-
+		<show-info-button></show-info-button>
+		<go-home-button></go-home-button>
 
 		<p style="color: white; font-size: 22px;">Your name is: {{username}}</p>
 
@@ -54,10 +26,10 @@
 
 				<span
 					style="display: flex; flex-direction: row; justify-content: space-between; margin-top: 5px; margin: auto;">
-					<b-button type="submit" variant="success" @click="sendMessage">
+					<b-button type="submit" variant="outline-success" @click="sendMessage">
 						<b-icon icon="chat-fill"></b-icon> Send
 					</b-button>
-					<b-button variant="danger" @click="()=>{messages=[]}">
+					<b-button variant="outline-danger" @click="()=>{messages=[]}">
 						<b-icon icon="trash"></b-icon> Clear
 					</b-button>
 				</span>
@@ -73,20 +45,20 @@
 
 <script>
 	// @ is an alias to /src
-	import HelloWorld from '@/components/HelloWorld.vue'
 	import SockJs from 'sockjs-client';
 	import StompClient from 'webstomp-client';
 	import Message from '../components/Message.vue';
-	import Info from './Info.vue';
 	import * as uuid from 'uuid';
 	import * as axios from 'axios';
+	import GoHomeButton from '../components/GoHomeButton.vue';
+	import ShowInfoButton from '../components/ShowInfoButton.vue';
 
 	export default {
-		name: 'Home',
+		name: 'Chat',
 		components: {
-			HelloWorld,
 			Message,
-			Info,
+			GoHomeButton,
+			ShowInfoButton
 		},
 		data() {
 			return {
@@ -97,7 +69,7 @@
 				alertText: String,
 				dismissSecs: 0,
 				dismissCountDown: 0,
-				beUrl: 'https://java-chat-backend.herokuapp.com'
+				beUrl: 'http://localhost:8080'
 			}
 			// this.username = "";
 		},
@@ -114,14 +86,8 @@
 			this.messages = [];
 		},
 		methods: {
-			enterUsernamePrompt(){
+			enterUsernamePrompt() {
 				this.username = prompt("Enter a username", uuid.v4());
-			},
-			countDownChanged(dismissCountDown) {
-				this.dismissCountDown = dismissCountDown
-			},
-			showAlert() {
-				this.dismissCountDown = this.dismissSecs
 			},
 
 			showUsernamePopUp() {
@@ -138,6 +104,9 @@
 					this.subscribeToChat();
 				}
 			},
+			goBack(){
+				this.$router.push("/");
+			},
 
 			addMessage(message) {
 
@@ -147,27 +116,33 @@
 				this.messages.push(message);
 			},
 
-			async sendInitialConnectionRequest(){
-				const beUrl = this.beUrl;
+			async sendInitialConnectionRequest() {
 				const ax = axios.default;
-				const obtainIpAddressUrl = 'https://api.ipify.org?format=json';
-				const ipData = (await ax.get(obtainIpAddressUrl)).data;
-				const {ip} = ipData;
-				const checkUrl = beUrl+'/check/'+ip;
+				const ipifyUrl = 'https://api.ipify.org?format=json';
+				const ipData = (await ax.get(ipifyUrl)).data;
+				const {
+					ip
+				} = ipData;
+				const checkUrl = this.beUrl + '/check/' + ip;
 				// data should contain IP
-				const {data} = await ax.get(checkUrl);
-				if(data.ipAddressHash && data.username){
+				const rsp = await ax.get(checkUrl);
+
+				const {
+					data
+				} = rsp;
+
+				if (data.ipAddressHash && data.username) {
 					this.username = data.username;
-				}else{
+				} else {
 					this.username = prompt("Enter a username");
-					if(this.username){
-						const registerUrl = beUrl+"/create";
+					if (this.username) {
+						const registerUrl = this.beUrl + "/create";
 						const requestData = {
 							ipAddress: ip,
 							username: this.username
 						};
 						await ax.post(registerUrl, requestData);
-					}else{
+					} else {
 						await this.sendInitialConnectionRequest();
 					}
 				}
@@ -193,23 +168,10 @@
 					});
 				}
 			},
-
-			subscribeToCoinListing() {
-				this.stompClient.subscribe("/topic/listedCoins", (data) => {
-					const {
-						body
-					} = data;
-					this.alertText = JSON.parse(body).ListedCoin.message;
-					this.dismissSecs = 5;
-					this.dismissCountDown = 5;
-					this.showAlert = true;
-				});
-			},
-
 			connectToChatServer() {
 				this.connectedToServer = false;
 				// https://java-chat-backend.herokuapp.com
-				this.socket = new SockJs(this.beUrl+"/chat-app");
+				this.socket = new SockJs(this.beUrl + "/chat-app");
 				this.stompClient = StompClient.over(this.socket, {
 					debug: false
 				});
@@ -217,7 +179,6 @@
 				this.stompClient.connect({}, (frame) => {
 					this.connectedToServer = true;
 					this.subscribeToChat();
-					this.subscribeToCoinListing();
 				});
 			},
 
@@ -228,12 +189,12 @@
 					recipientUsername: document.getElementById('recipient').value,
 					content: document.getElementById('messageContent').value,
 				};
-				if(message.content.length > 0){
+				if (message.content.length > 0) {
 
 					this.stompClient.send("/topic/messages/" + message.recipientUsername, JSON.stringify(message), {});
-	
+
 					this.addMessage(message);
-					
+
 					document.getElementById('messageContent').value = "";
 				}
 			}
