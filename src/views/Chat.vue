@@ -4,7 +4,8 @@
 		<show-info-button></show-info-button>
 		<go-home-button></go-home-button>
 
-		<p style="color: white; font-size: 22px;">Your name is: {{username}}</p>
+
+		<p style="color: white; font-size: 22px;">Your are: {{username}}</p>
 
 		<b-form @submit="sendMessage"
 			style="display: flex; flex-direction: column; justify-content: space-between; margin: auto; width: 75%;">
@@ -87,7 +88,7 @@
 		},
 		methods: {
 			enterUsernamePrompt() {
-				this.username = prompt("Enter a username", uuid.v4());
+				this.username = prompt("Enter a fancy username", uuid.v4());
 			},
 
 			showUsernamePopUp() {
