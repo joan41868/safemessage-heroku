@@ -5,12 +5,12 @@
 		<go-home-button></go-home-button>
 
 
-		<p style="color: white; font-size: 22px;">Your are: {{username}}</p>
+		<p style="color: white; font-size: 22px; color: #b491c8;">Your are: {{username}}</p>
 
 		<b-form @submit="sendMessage"
 			style="display: flex; flex-direction: column; justify-content: space-between; margin: auto; width: 75%;">
 			<b-form-input id="recipient" type="text" placeholder="recipient..."
-				style="margin-top: 5px; margin-bottom: 5px;" />
+				class="bg-dark" style="margin-top: 5px; margin-bottom: 5px; color: #b491c8;" />
 
 			<div class="chatmessagecontainer" v-show="messages.length > 0">
 
@@ -23,7 +23,7 @@
 			<div class="chat-controller">
 
 				<b-form-input id="messageContent" type="text" placeholder="Your message.."
-					style="margin-top: 5px; margin-bottom: 10px;" />
+					class="bg-dark"  style="margin-top: 5px; margin-bottom: 10px; color: #b491c8;" />
 
 				<span
 					style="display: flex; flex-direction: row; justify-content: space-between; margin-top: 5px; margin: auto;">
@@ -125,12 +125,12 @@
 				} = ipData;
 				const checkUrl = this.beUrl + '/check/' + ip;
 				// data should contain IP
-				const rsp = await ax.get(checkUrl);
+				const rsp = await ax.get(checkUrl, {withCredentials: true});
 
 				const {
 					data
 				} = rsp;
-
+				
 				if (data.ipAddressHash && data.username) {
 					this.username = data.username;
 				} else {
@@ -141,7 +141,7 @@
 							ipAddress: ip,
 							username: this.username
 						};
-						await ax.post(registerUrl, requestData);
+						await ax.post(registerUrl, requestData, {withCredentials: true});
 					} else {
 						await this.sendInitialConnectionRequest();
 					}
@@ -234,5 +234,6 @@
 
 	input {
 		font-size: 16px;
+		color: #b491c8;
 	}
 </style>

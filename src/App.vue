@@ -26,4 +26,9 @@
 
 #nav a.router-link-exact-active {
 }
+
+.outline-success{
+  color: #b491c8;
+  border-color: #b491c8;
+}
 </style>
