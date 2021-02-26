@@ -70,7 +70,7 @@
 				alertText: String,
 				dismissSecs: 0,
 				dismissCountDown: 0,
-				beUrl: 'http://localhost:8080'
+				beUrl: 'https://java-chat-backend.herokuapp.com'
 			}
 			// this.username = "";
 		},
@@ -78,7 +78,6 @@
 
 			this.showInfo = false;
 			await this.sendInitialConnectionRequest();
-			// this.username = prompt("Enter a username");
 			this.connectToChatServer();
 
 		},
